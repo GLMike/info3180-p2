@@ -173,12 +173,68 @@ def userDetail(user_id):
         userDetails['location'] = user.location
         userDetails['biography'] = user.biography
         userDetails['photo'] = user.photo
-        
+
         return jsonify(userDetails = userDetails)
     
         
+@app.route('/api/users/{userid}/favourite', methods=["POST"])
+def addFavorite(userid):
+    if request.is_json:
+        data = request.get_json(force=True)
+        faveCar = Cars(userid, data["id"], data["description"], data["make"], data["model"],
+                    data["colour"], data["year"], data["transmission"], data["car_type"], data["price"], data["photo"])
+                                
+        db.session.add(faveCar)
+        db.session.commit()
 
+        result = {"error": "null",
+                  "data": {
+                      "car":{
+                          "id": faveCar.id,
+                          "description": faveCar.description,
+                          "make": faveCar.make,
+                          "model": faveCar.model,
+                          "colour": faveCar.colour,
+                          "year": faveCar.year,
+                          "transmission": faveCar.transmission,
+                          "car_type": faveCar.car_type,
+                          "price": faveCar.price,
+                          "photo": faveCar.photo,
+
+                      }
+                  }, 
+                  "message":"Success"}
+        flash('Favorite car added successfully', 'success')
+        print ("Success")
+    else:
+        result = {"error": "true", "data": {}, "message": "Unable add car"}
+        print ("failed")
+    print ("returning")
+    return jsonify(result)
     
+@app.route('/api/users/<userid>/favourites', methods=["GET"])
+@login_required
+def userFavourite(userid):
+    """Returns JSON data for a user's wishlist"""
+
+    favorite = {"error": "null","data": {"cars":[]},"message":"Success"}
+
+    temp = Cars.query.filter_by(owner_id=userid).all()
+
+    for f in temp:
+        favorite["data"]["cars"].append({ "id": f.id,
+                          "description": f.description,
+                          "make": f.make,
+                          "model": f.model,
+                          "colour": f.colour,
+                          "year": f.year,
+                          "transmission": f.transmission,
+                          "car_type": f.car_type,
+                          "price": f.price,
+                          "photo": f.photo,
+                          })
+    
+    return jsonify(favorite)    
 
 
 
