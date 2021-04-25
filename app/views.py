@@ -7,13 +7,14 @@ This file creates your application.
 import os
 from app import app, db
 from flask import render_template, request, redirect, url_for, send_from_directory, flash
-#from app.propertyform import Propertyform
+from app import ModelForm
 from werkzeug.utils import secure_filename
 from app.models import Favourites, Cars, Users
 import psycopg2
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from flask.json import jsonify
 
 ###
 # Routing for your application.
@@ -116,6 +117,70 @@ def viewproperty(propertyid):
 
 
 """
+@app.route('/api/search', methods=['GET'])
+@requires_auth
+def searchCar():
+    results = []
+    
+    if request.method =='GET':
+        
+        make = request.args.get('searchbymake')
+        model = request.args.get('searchbymodel')
+
+        
+        # To be changed to the actual db name
+        car = car.query.all()        
+        results = db.session.execute('select * from car where car.model like :model or car.make like :make' , {'model': model, 'make': make}).all()
+        
+        if results == []:
+                flash('Car model not found', 'danger')
+        results.sort()
+
+        for r in results:
+            foundCar = ()
+            foundCar['id'] = r.id
+            foundCar['user_id']=r.user_id
+            foundCar['year'] = r.year
+            foundCar['price'] = r.price
+            foundCar['photo'] = r.photo
+            foundCar['make'] = r.make
+            foundCar['model'] = r.model
+            results.append(foundCar)
+
+        return jsonify(searchCars = results)
+
+
+        
+
+
+ 
+
+
+
+# Under review for after db edits
+@app.route('/api/users/{user_id}',methods=['GET'])
+@requires_auth
+def userDetail(user_id):
+    if request.method == 'GET':
+        user = Users.query.all()
+        results = db.session.execute('select * from car where user.user_id like :userid' , {'userid': user_id}).all()
+        
+        userDetails = ()
+        userDetails['id'] = user.id
+        userDetails['username'] = user.username
+        userDetails['name'] = user.name
+        userDetails['email'] = user.email
+        userDetails['location'] = user.location
+        userDetails['biography'] = user.biography
+        userDetails['photo'] = user.photo
+        
+        return jsonify(userDetails = userDetails)
+    
+        
+
+    
+
+
 
 ###
 # The functions below should be applicable to all Flask apps.
