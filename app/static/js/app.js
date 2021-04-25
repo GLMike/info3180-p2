@@ -1,33 +1,34 @@
 /* Add your Application JavaScript */
 const app = Vue.createApp({
-  data() {
-    return {
-      
-      welcome: 'Hello World! Welcome to VueJS',
-      components: {
-        'home': Home,
-        'news-list': NewsList
+    data() {
+        return {
+
+            welcome: 'Hello World! Welcome to VueJS',
+            components: {
+                'home': Home,
+                'news-list': NewsList
+            }
         }
     }
-  }
 });
 
 
 const Home = {
-  name: 'Home',
-  template: `
+    name: 'Home',
+    template: `
   _ADD CODE_
   `,
-  data() {return {
-  welcome: 'Hello World! Welcome to VueJS'
-  }
-  }
-  };
+    data() {
+        return {
+            welcome: 'Hello World! Welcome to VueJS'
+        }
+    }
+};
 
 
 app.component('app-header', {
-  name: 'AppHeader',
-  template: `
+    name: 'AppHeader',
+    template: `
       <header>
           <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
             <a class="navbar-brand" href="#">United Auto Sales</a>
@@ -48,32 +49,83 @@ app.component('app-header', {
           </nav>
       </header>    
   `,
-  data: function() {
-    return {};
-  }
+    data: function() {
+        return {};
+    }
 });
 
 app.component('app-footer', {
-  name: 'AppFooter',
-  template: `
+    name: 'AppFooter',
+    template: `
       <footer>
           <div class="container">
               <p>Copyright &copy {{ year }} Flask Inc.</p>
           </div>
       </footer>
   `,
-  data: function() {
-      return {
-          year: (new Date).getFullYear()
-      }
-  }
+    data: function() {
+        return {
+            year: (new Date).getFullYear()
+        }
+    }
 })
+const ModelForm = {
+    name: 'ModelForm',
+    template: `
+  
+  <h2>Search Model</h2>
+  
+  <br>
+  
+  <form action="" id="modelForm" method="post" enctype="multipart/form-data">
 
-const NewsList ={
-  name: 'Newslist', 
-  template:
+  <div class="form-group">
+      <label for="model"><b>Model</b></label>
+      <input type="text" class="form-control" name="model">
+      
+      <br>
+  </div>
 
-  `<div class="news">
+  <button type="submit" name="btnsub" class="btn btn-primary">Search Model</button>
+</form>
+  `,
+    data() {
+        return {};
+
+    },
+    methods: {
+        SearchModel() {
+            let modelForm = document.getElementById('modelForm');
+            let form_data = new FormData(modelForm);
+
+            fetch("/api/search", {
+                method: 'POST',
+                body: form_data,
+                headers: {
+                    'X-CSRFToken': token
+                },
+                credentials: 'same-origin'
+            })
+
+            .then(function(response) {
+                    return response.json();
+                })
+                .then(function(jsonResponse) {
+                    console.log(jsonResponse);
+                })
+
+            .catch(function(error) {
+                console.log(error)
+            });
+        }
+    }
+};
+
+const NewsList = {
+        name: 'Newslist',
+        template:
+
+            `<div class="news">
   <h2>News</h2>
   <div class="form-inline d-flex justify-content-center">
 <div class="form-group mx-sm-3 mb-2">
@@ -91,59 +143,65 @@ class="news__item"> {{article.title }} <br> <img :src=article.urlToImage> <br> {
   </ul>
   </div>
   `,
-  created() {
-    let self=this;
-    fetch('https://newsapi.org/v2/top-headlines?country=us',
-    {
-      
-    headers: {
-      
-    'Authorization': 'Bearer <toke>'
-    }
-    })
-    .then(function(response) {
-    return response.json();
-    })
-    .then(function(data) {
-    console.log(data);
-    self.articles=data.articles;
-    });
-    },
-    data() {
-    return {
-    articles: [],
-    searchTerm:''
-    }
-    },
-    methods: {
-    searchNews() {
-    let self = this;
-    fetch('https://newsapi.org/v2/everything?q='+
-    self.searchTerm + '&language=en', {
-    headers: {
-    'Authorization': 'Bearer <token>'
-    }
-    })
-    .then(function(response) {
-    return response.json();
-    })
-    .then(function(data) {
-    console.log(data);
-    self.articles = data.articles;
-    });
-    }
-    }
+        created() {
+            let self = this;
+            fetch('https://newsapi.org/v2/top-headlines?country=us', {
 
-}
+                    headers: {
 
-  
+                        'Authorization': 'Bearer <toke>'
+                    }
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log(data);
+                    self.articles = data.articles;
+                });
+        },
+        data() {
+            return {
+                articles: [],
+                searchTerm: ''
+            }
+        },
+        methods: {
+            searchNews() {
+                let self = this;
+                fetch('https://newsapi.org/v2/everything?q=' +
+                        self.searchTerm + '&language=en', {
+                            headers: {
+                                'Authorization': 'Bearer <token>'
+                            }
+                        })
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        console.log(data);
+                        self.articles = data.articles;
+                    });
+            }
+        }
+
+    }
+    // Define Routes
+const routes = [
+    { path: "/", component: Home },
+    // Put other routes here
+    { path: "/api/search", component: ModelForm },
+    // This is a catch all route in case none of the above matches
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }
+];
+
 const router = VueRouter.createRouter({
-  history: VueRouter.createWebHistory(),
-  routes: [
-  { path: '/', component: Home },
-  { path: '/news', component: NewsList }
-  ]
-  });
+    history: VueRouter.createWebHistory(),
+    routes: [
+        { path: '/', component: Home },
+        { path: '/news', component: NewsList }
+    ]
+});
 
 app.use(router)
 app.mount('#app');
